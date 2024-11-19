@@ -1,0 +1,8 @@
+.ant-table-thead th,
+td {
+  text-align: center !important;
+}
+.ant-table-thead th,
+td p {
+  margin: 0 auto;
+}

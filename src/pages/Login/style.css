@@ -1,0 +1,13 @@
+.ant-pro-form-login-page {
+  background-image: url("path/to/your/image.jpg");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  height: 100vh;
+  margin: 0;
+}
+.ant-pro-form-login-page-left {
+  max-width: 50% !important;
+  padding: 24px 60px 24px 24px !important;
+  align-items: flex-end !important;
+}

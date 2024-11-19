@@ -1,0 +1,8 @@
+.ant-pro-card-extra {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 20px !important;
+}
+.ant-modal {
+  width: 30% !important;
+}
