@@ -76,11 +76,6 @@ const Home = () => {
             name: "Quản lý lịch hẹn",
             icon: <SmileOutlined />,
           },
-          {
-            path: "/home/p/video-call",
-            name: "Video call",
-            icon: <SmileOutlined />,
-          },
         ];
 
   // Render menu items với các liên kết (Link)
@@ -95,6 +90,11 @@ const Home = () => {
 
       return item;
     });
+  };
+
+  const handleAccept = () => {
+    navigate("/video-call");
+    acceptCall();
   };
 
   useEffect(() => {
@@ -125,7 +125,7 @@ const Home = () => {
               Từ chối
             </Button>
             ,
-            <Button color="primary" variant="solid" onClick={acceptCall}>
+            <Button color="primary" variant="solid" onClick={handleAccept}>
               Trả lời
             </Button>
           </>

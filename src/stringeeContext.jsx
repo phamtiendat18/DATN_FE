@@ -17,12 +17,12 @@ export const StringeeProvider = ({ children }) => {
 
   const settingCallEvent = (call1) => {
     call1.on("addremotestream", (stream) => {
-      // setStreamRemote(stream);
+      setStreamRemote(stream);
       console.log("remote stream:", stream);
     });
 
     call1.on("addlocalstream", (stream) => {
-      // setStreamLocal(stream);
+      setStreamLocal(stream);
       console.log("local stream:", stream);
     });
     call1.on("addlocaltrack", (localtrack1) => {
@@ -40,6 +40,9 @@ export const StringeeProvider = ({ children }) => {
     });
     call1.on("removelocaltrack", (track) => {
       track.detachAndRemove();
+    });
+    call1.on("trackmediachange", (track) => {
+      console.log(track);
     });
 
     call1.on("signalingstate", (state) => {

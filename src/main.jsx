@@ -92,6 +92,10 @@ const router = createBrowserRouter([
     path: "/home/p/video-call",
     element: <VideoCall />,
   },
+  {
+    path: "/video-call",
+    element: <VideoCall />,
+  },
 ]);
 
 createRoot(document.getElementById("root")).render(

@@ -34,6 +34,7 @@ import formatedTime from "../../../../../commons/time";
 import VideoCall from "../../../../VideoCall";
 import { StringeeCall, StringeeCall2, StringeeClient } from "stringee";
 import { StringeeContext } from "../../../../../stringeeContext";
+import { useNavigate } from "react-router-dom";
 
 export default function AppointmentManagement() {
   const { onCall } = useContext(StringeeContext);
@@ -43,6 +44,7 @@ export default function AppointmentManagement() {
   const [loading, setLoading] = useState(false);
   const userInfo = useRecoilValue(userAtom);
   const user_id = localStorage.getItem("user_id");
+  const navigate = useNavigate();
 
   const [hasIncomingCall, setHasIncomingCall] = useState(false);
   const [friendName, setFriendName] = useState("");
@@ -71,6 +73,10 @@ export default function AppointmentManagement() {
       setDataSource(newArr);
     }
   }, [userInfo]);
+  const handleClick = (friendName) => {
+    onCall(friendName);
+    navigate("/video-call");
+  };
 
   const columns = [
     {
@@ -116,21 +122,9 @@ export default function AppointmentManagement() {
       title: "Hành động",
       key: "action",
       render: (_, record) => (
-        <>
-          <ModalForm
-            title="Cuộc gọi"
-            trigger={
-              <Button onClick={() => onCall(String(record?.user_id))}>
-                Gọi
-              </Button>
-            }
-            form={form}
-            autoFocusFirstInput
-            submitter={false}
-          >
-            <VideoCall friendName={record?.staff_name} />
-          </ModalForm>
-        </>
+        <Button onClick={() => handleClick(String(record?.user_id))}>
+          Gọi
+        </Button>
       ),
     },
   ];
