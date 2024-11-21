@@ -1,27 +1,45 @@
 import React, { createContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { StringeeClient, StringeeCall2 } from "stringee";
+import { StringeeClient, StringeeCall2, StringeeCall } from "stringee";
 
 // Tạo Context
 export const StringeeContext = createContext();
 
 export const StringeeProvider = ({ children }) => {
-  const [stringeeClient, setStringeeClient] = useState(null);
-  const [incomingCall, setIncomingCall] = useState(null);
   const [hasIncomingCall, setHasIncomingCall] = useState(false);
   const [streamLocal, setStreamLocal] = useState();
   const [streamRemote, setStreamRemote] = useState();
   const [isCalling, setIsCalling] = useState();
   const [isVideoCall, setIsVideoCall] = useState(false);
-  const accessToken = localStorage.getItem("access_token");
+  const [call, setCall] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const client = new StringeeClient();
 
   const settingCallEvent = (call1) => {
     call1.on("addremotestream", (stream) => {
-      setStreamRemote(stream);
+      // setStreamRemote(stream);
+      console.log("remote stream:", stream);
     });
 
     call1.on("addlocalstream", (stream) => {
-      setStreamLocal(stream);
+      // setStreamLocal(stream);
+      console.log("local stream:", stream);
+    });
+    call1.on("addlocaltrack", (localtrack1) => {
+      console.log("addlocaltrack", localtrack1);
+
+      const element = localtrack1.attach();
+      setStreamLocal(element);
+    });
+    call1.on("addremotetrack", (track) => {
+      const element = track.attach();
+      setStreamRemote(element);
+    });
+    call1.on("removeremotetrack", (track) => {
+      track.detachAndRemove();
+    });
+    call1.on("removelocaltrack", (track) => {
+      track.detachAndRemove();
     });
 
     call1.on("signalingstate", (state) => {
@@ -29,12 +47,14 @@ export const StringeeProvider = ({ children }) => {
 
       if (state.code === 3) {
         setIsCalling(true);
+        setLoading(false);
       } else if ([4, 5, 6].includes(state.code)) {
         setIsCalling(false);
-        setHasIncomingCall(true);
+        setHasIncomingCall(false);
+        setLoading(false);
       }
     });
-    call1.on("mediastate", function (state) {
+    call1.on("mediastate", (state) => {
       console.log("mediastate ", state);
     });
 
@@ -42,59 +62,69 @@ export const StringeeProvider = ({ children }) => {
       console.log("on info:" + JSON.stringify(info));
     });
   };
-  const onCall = async (username, friendUsername, videoCall = false) => {
+  const onCall = async (friendUsername, videoCall = false) => {
+    const user_id = localStorage.getItem("user_id");
+    console.log(user_id, friendUsername);
+
     if (isCalling || !friendUsername) return;
 
-    if (username === friendUsername) {
+    if (user_id === friendUsername) {
       alert("Không thể gọi cho chính mình");
       return;
     }
+    setLoading(true);
     setIsVideoCall(videoCall);
 
-    call = new StringeeCall2(
-      stringeeClient,
-      username,
+    const calling = new StringeeCall2(
+      client,
+      user_id,
       friendUsername,
       videoCall
     );
-    settingCallEvent(call);
+    console.log(calling);
 
-    call.makeCall((res) => {
+    await settingCallEvent(calling);
+
+    calling.makeCall((res) => {
       console.log("make call callback:", res);
     });
+    setCall(calling);
   };
 
   const acceptCall = () => {
-    incomingCall.answer((res) => {
+    call.answer((res) => {
       console.log("answer call callback:", res);
       setHasIncomingCall(false);
       setIsCalling(true);
+      setLoading(false);
     });
   };
 
   const rejectCall = () => {
-    incomingCall.reject((res) => {
+    call.reject((res) => {
       console.log("reject call callback:", res);
       setHasIncomingCall(false);
+      setLoading(false);
     });
   };
 
   const hangupCall = () => {
-    incomingCall.hangup((res) => {
+    call.hangup((res) => {
       console.log("hangup call callback:", res);
       setIsCalling(false);
+      setLoading(false);
     });
   };
 
   const upgradeToVideoCall = () => {
-    incomingCall.upgradeToVideoCall();
+    console.log(call);
+    call.upgradeToVideoCall();
     setIsVideoCall(true);
+    setLoading(true);
   };
 
   useEffect(() => {
-    // Khởi tạo StringeeClient
-    const client = new StringeeClient();
-
+    const accessToken = localStorage.getItem("access_token");
     client.connect(accessToken);
 
     client.on("connect", () => {
@@ -108,29 +138,26 @@ export const StringeeProvider = ({ children }) => {
     client.on("disconnect", () => {
       console.log("StringeeClient disconnected");
     });
-
-    // Lắng nghe cuộc gọi đến
-    client.on("incomingcall", (call) => {
-      console.log("Incoming call:", call);
-      setIncomingCall(call); // Lưu cuộc gọi đến vào state
-      settingCallEvent(call);
-      setIsVideoCall(call?.isVideoCall);
+    client.on("otherdeviceauthen", (data) => {
+      console.log("Một thiết bị khác đã đăng nhập:", data);
     });
 
-    setStringeeClient(client);
-
-    return () => {
-      client.disconnect(); // Hủy kết nối khi component bị unmount
-    };
+    // Lắng nghe cuộc gọi đến
+    client.on("incomingcall2", (incomeCall) => {
+      console.log("Incoming call:", incomeCall);
+      setCall(incomeCall);
+      settingCallEvent(incomeCall);
+      setHasIncomingCall(true);
+      setIsVideoCall(incomeCall?.isVideoCall);
+      setLoading(true);
+    });
   }, []);
 
   return (
     <StringeeContext.Provider
       value={{
-        stringeeClient,
-        incomingCall,
-        setIncomingCall,
         isCalling,
+        isVideoCall,
         setIsCalling,
         hasIncomingCall,
         onCall,
@@ -138,6 +165,8 @@ export const StringeeProvider = ({ children }) => {
         rejectCall,
         hangupCall,
         upgradeToVideoCall,
+        streamLocal,
+        streamRemote,
       }}
     >
       {children}

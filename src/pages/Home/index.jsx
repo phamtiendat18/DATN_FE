@@ -1,7 +1,7 @@
 // HomePage.tsx
 import React, { useCallback, useContext, useEffect } from "react";
 import { ProLayout } from "@ant-design/pro-layout";
-import { Avatar, Dropdown, Menu, Modal, notification } from "antd";
+import { Avatar, Button, Dropdown, Menu, Modal, notification } from "antd";
 import { SmileOutlined, AppstoreAddOutlined } from "@ant-design/icons";
 import {
   Link,
@@ -21,11 +21,18 @@ import request from "../../configs/axiosConfig";
 import AvatarDropdown from "../../components/MenuDropDown";
 import MenuDropDown from "../../components/MenuDropDown";
 import { StringeeContext, StringeeProvider } from "../../stringeeContext";
+import VideoCall from "../VideoCall";
 
 const Home = () => {
   const role = localStorage.getItem("role")?.toLocaleLowerCase().trim() || "";
-  const { hasIncomingCall, inComingCall, handleReject, handleAnswer } =
-    useContext(StringeeContext);
+  const {
+    hasIncomingCall,
+    inComingCall,
+    rejectCall,
+    acceptCall,
+    isCalling,
+    isVideoCall,
+  } = useContext(StringeeContext);
   const navigate = useNavigate();
   const handleLogout = useCallback(async () => {
     const response = await request.post("/auth/logout");
@@ -108,19 +115,21 @@ const Home = () => {
       onMenuHeaderClick={() => console.log("Logo clicked")} // Sự kiện click vào logo
     >
       <Outlet />
-      <Modal
-        visible={!!hasIncomingCall}
-        onCancel={handleReject}
-        footer={[
-          <button key="reject" onClick={handleReject}>
-            Từ chối
-          </button>,
-          <button key="answer" onClick={handleAnswer}>
-            Trả lời
-          </button>,
-        ]}
-      >
-        <h3>Cuộc gọi từ {inComingCall?.fromAlias}</h3>
+      <Modal visible={!!hasIncomingCall} onCancel={rejectCall} footer={[]}>
+        {isCalling ? (
+          <VideoCall />
+        ) : (
+          <>
+            <h3>Cuộc gọi từ {inComingCall?.fromAlias}</h3>
+            <Button color="danger" variant="solid" onClick={rejectCall}>
+              Từ chối
+            </Button>
+            ,
+            <Button color="primary" variant="solid" onClick={acceptCall}>
+              Trả lời
+            </Button>
+          </>
+        )}
       </Modal>
     </ProLayout>
   );
