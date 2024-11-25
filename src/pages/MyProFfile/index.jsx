@@ -30,10 +30,13 @@ const MyProfile = () => {
     setEditing(false);
     const bodyData = form.getFieldsValue();
     const birthday = moment(bodyData?.birthday).format("YYYY-MM-DD HH:mm:ss");
+    const gender =
+      typeof bodyData?.gender !== "boolean" ? null : bodyData?.gender;
+    console.log(gender);
 
     const data = await request.put(
       `/${role === "staffs" ? "staff" : "patient"}/${id}`,
-      { ...bodyData, birthday }
+      { ...bodyData, birthday, gender }
     );
     form.setFieldsValue(bodyData);
     if (data.data?.status) {

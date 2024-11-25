@@ -109,11 +109,16 @@ const Home = () => {
       title={role === "admin" ? "Admin Dashboard" : ""}
       logo={logo} // Optional logo
       disableMobile={false}
-      rightContentRender={(props) => <MenuDropDown />}
       menuDataRender={() => renderMenu(menuData)} // Dữ liệu menu
       menuItemRender={(item, dom) => <Link to={item.path}>{dom}</Link>}
       onMenuHeaderClick={() => console.log("Logo clicked")} // Sự kiện click vào logo
     >
+      <div className="flex justify-between">
+        <div className="text-[20px] uppercase">
+          Hệ thống tư vấn sức khỏe của bệnh viện Hưng Hà
+        </div>
+        <MenuDropDown />
+      </div>
       <Outlet />
       <Modal visible={!!hasIncomingCall} onCancel={rejectCall} footer={[]}>
         {isCalling ? (

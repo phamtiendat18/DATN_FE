@@ -3,6 +3,8 @@ import { StringeeClient, StringeeCall2 } from "stringee";
 import { StringeeContext } from "../../stringeeContext";
 import { Button } from "antd";
 import { useNavigate } from "react-router-dom";
+import { CloseCircleOutlined } from "@ant-design/icons";
+import ChatBox from "../../components/ChatBox";
 
 const VideoCall = ({ friendName }) => {
   const {
@@ -12,14 +14,22 @@ const VideoCall = ({ friendName }) => {
     streamLocal,
     streamRemote,
     upgradeToVideoCall,
+    isEnd,
+    createConversation,
   } = useContext(StringeeContext);
   const localVideo = useRef(null);
   const remoteVideo = useRef(null);
   const navigate = useNavigate();
+  const [showChat, setShowChat] = useState(false);
 
   const handleEnd = () => {
     navigate("/home");
     hangupCall();
+  };
+
+  const handleShowChat = async () => {
+    await createConversation();
+    setShowChat(!showChat);
   };
 
   useEffect(() => {
@@ -35,40 +45,56 @@ const VideoCall = ({ friendName }) => {
 
   return (
     <div className="w-full ">
-      <div className="flex flex-col justify-between h-[100vh]">
-        <h1 className="text-center">Demo: Voice Call & Video Call</h1>
-        {isCalling && isVideoCall && (
-          <div className="flex">
-            <div
-              ref={localVideo}
-              style={{ width: "50%", background: "black" }}
-            ></div>
-            <div
-              ref={remoteVideo}
-              style={{ width: "50%", background: "black" }}
-              className="mx-3"
-            ></div>
+      {isEnd ? (
+        <div className="h-[100vh] flex justify-center items-center">
+          <div>
+            <div>Cuộc gọi đã kết thúc</div>
+            <div className="text-center">
+              <CloseCircleOutlined
+                style={{ color: "red", border: "0" }}
+                onClick={() => navigate("/home")}
+              />
+            </div>
           </div>
-        )}
-        {isCalling && (
-          <div className="mt-3 flex items-center w-full justify-center">
-            {!isVideoCall ? (
-              <Button
-                color="primary"
-                variant="solid"
-                onClick={upgradeToVideoCall}
-              >
-                Mở camera
+        </div>
+      ) : (
+        <div className="flex flex-col justify-between h-[100vh]">
+          <h1 className="text-center">Demo: Voice Call & Video Call</h1>
+          {isCalling && isVideoCall && (
+            <>
+              <div className="flex">
+                <div
+                  ref={localVideo}
+                  style={{ width: "", background: "black" }}
+                ></div>
+                <div
+                  ref={remoteVideo}
+                  style={{ width: "", background: "black" }}
+                  className="mx-3"
+                ></div>
+              </div>
+            </>
+          )}
+          {isCalling && (
+            <div className="mt-3 flex items-center w-full justify-center">
+              {!isVideoCall ? (
+                <Button
+                  color="primary"
+                  variant="solid"
+                  onClick={upgradeToVideoCall}
+                >
+                  Mở camera
+                </Button>
+              ) : (
+                ""
+              )}
+              <Button color="danger" variant="solid" onClick={handleEnd}>
+                Kết thúc
               </Button>
-            ) : (
-              ""
-            )}
-            <Button color="danger" variant="solid" onClick={handleEnd}>
-              Kết thúc
-            </Button>
-          </div>
-        )}
-      </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

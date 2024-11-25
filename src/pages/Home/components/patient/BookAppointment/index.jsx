@@ -17,6 +17,7 @@ const doctors = [
 const BookAppointment = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [staffs, setStaffs] = useState([]);
 
   // Cấu hình locale Tiếng Việt cho moment
   moment.locale("vi"); // Cập nhật lại locale cho moment
@@ -39,7 +40,6 @@ const BookAppointment = () => {
 
   return (
     <ConfigProvider locale={viVN}>
-      {" "}
       <>
         <Form.Item
           label="Thời gian hẹn"
@@ -48,7 +48,7 @@ const BookAppointment = () => {
         >
           <DatePicker
             showTime
-            format="YYYY-MM-DD HH:mm"
+            format="HH:mm DD/MM/YYYY"
             placeholder="Chọn ngày và giờ"
             style={{ width: "100%" }}
             disabledDate={(current) =>
@@ -58,20 +58,46 @@ const BookAppointment = () => {
         </Form.Item>
 
         <Form.Item
+          label="Chọn khoa"
+          name="department_id"
+          rules={[
+            { required: true, message: "Vui lòng chọn khoa bạn muốn khám!" },
+          ]}
+        >
+          <ProFormSelect
+            request={async () => {
+              const data = await request.get("/department");
+              const result = Array.isArray(data.data?.data)
+                ? data.data.data.map((i) => ({
+                    value: i?.id,
+                    label: i?.name,
+                  }))
+                : [];
+              return result;
+            }}
+            name="department_id"
+            placeholder="Khoa"
+            onChange={async (value) => {
+              const staffArr = await request.get(`/staff/department/${value}`);
+              const newStaffArr = Array.isArray(staffArr.data)
+                ? staffArr.data.map((item) => ({
+                    value: item?.id,
+                    label: item?.name,
+                  }))
+                : [];
+              setStaffs(newStaffArr);
+            }}
+          />
+        </Form.Item>
+        <Form.Item
           label="Bác sĩ"
           name="staff_id"
           rules={[{ required: true, message: "Vui lòng chọn bác sĩ!" }]}
         >
           <ProFormSelect
             placeholder="Chọn bác sĩ"
-            request={async () => {
-              const data = await request.get("/staff");
-              const result = data?.data?.data.map((i) => ({
-                value: i?.id,
-                label: i?.name,
-              }));
-              return result;
-            }}
+            options={staffs}
+            loading={true}
           />
         </Form.Item>
       </>

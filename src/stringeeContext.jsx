@@ -1,6 +1,12 @@
 import React, { createContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { StringeeClient, StringeeCall2, StringeeCall } from "stringee";
+import {
+  StringeeClient,
+  StringeeCall2,
+  StringeeCall,
+  StringeeChat,
+  StringeeChat2,
+} from "stringee";
 
 // Tạo Context
 export const StringeeContext = createContext();
@@ -13,7 +19,63 @@ export const StringeeProvider = ({ children }) => {
   const [isVideoCall, setIsVideoCall] = useState(false);
   const [call, setCall] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isEnd, setIsEnd] = useState(false);
+
   const client = new StringeeClient();
+  const chat = new StringeeChat(client);
+
+  const [connected, setConnected] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [currentConversationId, setCurrentConversationId] = useState("");
+  const userId = localStorage.getItem("user_id");
+
+  const createConversation = async (user_1, user_2) => {
+    if (!chat) return;
+
+    const participants = [
+      { userId: call?.fromNumber },
+      { userId: call?.toNumber },
+    ];
+    console.log(participants);
+
+    chat.createConversation(
+      { name: call?.callId, participants, isDistinct: true },
+      (status, code, message, conversation) => {
+        console.log(status);
+
+        if (status === 0) {
+          console.log("Conversation created:", conversation);
+          setCurrentConversationId(conversation.id);
+        } else {
+          console.error("Failed to create conversation:", message);
+        }
+      }
+    );
+  };
+
+  const sendMessage = (newMessage) => {
+    if (!newMessage || !currentConversationId || !chat) return;
+
+    const chatMessage = {
+      conversationId: currentConversationId,
+      message: {
+        type: 1, // 1 = text
+        content: newMessage,
+      },
+    };
+
+    chat.sendMessage(chatMessage, (status, code, messageId) => {
+      if (status === 0) {
+        setMessages((prev) => [
+          ...prev,
+          { id: messageId, text: newMessage, sender: userId },
+        ]);
+        setInput("");
+      } else {
+        console.error("Failed to send message:", code);
+      }
+    });
+  };
 
   const settingCallEvent = (call1) => {
     call1.on("addremotestream", (stream) => {
@@ -32,6 +94,8 @@ export const StringeeProvider = ({ children }) => {
       setStreamLocal(element);
     });
     call1.on("addremotetrack", (track) => {
+      console.log("remote track", track);
+
       const element = track.attach();
       setStreamRemote(element);
     });
@@ -47,7 +111,11 @@ export const StringeeProvider = ({ children }) => {
 
     call1.on("signalingstate", (state) => {
       console.log("signalingstate", state);
-
+      if (state?.reason === "Ended") {
+        setIsEnd(true);
+      } else {
+        setIsEnd(false);
+      }
       if (state.code === 3) {
         setIsCalling(true);
         setLoading(false);
@@ -154,6 +222,12 @@ export const StringeeProvider = ({ children }) => {
       setIsVideoCall(incomeCall?.isVideoCall);
       setLoading(true);
     });
+    chat.on("newmessage", (msg) => {
+      setMessages((prev) => [
+        ...prev,
+        { id: msg.seq, text: msg.content, sender: msg.from },
+      ]);
+    });
   }, []);
 
   return (
@@ -170,6 +244,10 @@ export const StringeeProvider = ({ children }) => {
         upgradeToVideoCall,
         streamLocal,
         streamRemote,
+        isEnd,
+        sendMessage,
+        createConversation,
+        messages,
       }}
     >
       {children}

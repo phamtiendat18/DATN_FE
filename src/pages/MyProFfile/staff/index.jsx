@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { Form, Input, Button, DatePicker, Select, message } from "antd";
-import axios from "axios"; // Dùng axios để gọi API
 import moment from "moment"; // Để làm việc với thời gian
 import {
   ProFormDatePicker,
@@ -8,41 +7,11 @@ import {
   ProFormText,
   ProFormTextArea,
 } from "@ant-design/pro-components";
+import request from "../../../configs/axiosConfig";
 
 const { Option } = Select;
 
 const StaffProfile = ({ userId, editing }) => {
-  const [staffData, setStaffData] = useState(null);
-
-  useEffect(() => {
-    // Lấy dữ liệu nhân viên từ API
-    const fetchStaffData = async () => {
-      try {
-        const response = await axios.get(`/api/staffs/${userId}`);
-        setStaffData(response.data);
-      } catch (error) {
-        message.error("Không thể tải dữ liệu nhân viên");
-      }
-    };
-
-    fetchStaffData();
-  }, []);
-
-  const onFinish = async (values) => {
-    // Cập nhật thông tin nhân viên qua API
-    try {
-      const response = await axios.put(`/api/staffs/${userId}`, values);
-      message.success("Cập nhật thông tin thành công!");
-      setStaffData(response.data);
-    } catch (error) {
-      message.error("Cập nhật thông tin thất bại");
-    }
-  };
-
-  if (!staffData) {
-    return <div>Loading...</div>;
-  }
-
   return (
     <>
       <ProFormText
@@ -52,7 +21,12 @@ const StaffProfile = ({ userId, editing }) => {
         disabled={!editing}
       />
       <ProFormSelect
-        request={() => [
+        // request={() => [
+        //   { label: "Nam", value: true },
+        //   { label: "Nữ", value: false },
+        //   { label: "Khác", value: null },
+        // ]}
+        options={[
           { label: "Nam", value: true },
           { label: "Nữ", value: false },
           { label: "Khác", value: null },
@@ -80,10 +54,20 @@ const StaffProfile = ({ userId, editing }) => {
         placeholder="Chức vụ"
         disabled={!editing}
       />
-      <ProFormText
-        label="Bộ phận"
-        name="department"
-        placeholder="Bộ phận"
+      <ProFormSelect
+        request={async () => {
+          const data = await request.get("/department");
+          const result = Array.isArray(data.data?.data)
+            ? data.data.data.map((i) => ({
+                value: i?.id,
+                label: i?.name,
+              }))
+            : [];
+          return result;
+        }}
+        label="Khoa"
+        name="department_id"
+        placeholder="Khoa"
         disabled={!editing}
       />
       <ProFormText

@@ -30,11 +30,14 @@ import userAtom from "../../../../../atoms/user";
 import BookAppointment from "../BookAppointment";
 import { render } from "less";
 import "./style.css";
-import formatedTime from "../../../../../commons/time";
+import formattedTime from "../../../../../commons/time";
 import VideoCall from "../../../../VideoCall";
 import { StringeeCall, StringeeCall2, StringeeClient } from "stringee";
 import { StringeeContext } from "../../../../../stringeeContext";
 import { useNavigate } from "react-router-dom";
+import moment from "moment-timezone";
+import { formatTimeUTC } from "../../../../../utils/time";
+import ChatBox from "../../../../../components/ChatBox";
 
 export default function AppointmentManagement() {
   const { onCall } = useContext(StringeeContext);
@@ -68,7 +71,6 @@ export default function AppointmentManagement() {
         };
         return itemObj;
       });
-      console.log(newArr);
 
       setDataSource(newArr);
     }
@@ -90,7 +92,7 @@ export default function AppointmentManagement() {
       title: "Thời gian đã hẹn",
       dataIndex: "scheduled_time",
       key: "scheduled_time",
-      render: (time) => <p>{formatedTime(time)}</p>,
+      render: (time) => <p>{formattedTime(time)}</p>,
     },
     {
       title: "Bác sĩ",
@@ -121,11 +123,48 @@ export default function AppointmentManagement() {
     {
       title: "Hành động",
       key: "action",
-      render: (_, record) => (
-        <Button onClick={() => handleClick(String(record?.user_id))}>
-          Gọi
-        </Button>
-      ),
+      render: (_, record) => {
+        const specificTime = new Date(record?.scheduled_time); // Thời gian cần kiểm tra
+        const now = new Date(); // Thời gian hiện tại
+
+        // Kiểm tra nếu cùng ngày
+        const isSameDay =
+          specificTime.getUTCFullYear() === now.getUTCFullYear() &&
+          specificTime.getUTCMonth() === now.getUTCMonth() &&
+          specificTime.getUTCDate() === now.getUTCDate();
+
+        // Kiểm tra nếu lớn hơn 1 tiếng
+        const haftHourLater = specificTime.getTime() + 30 * 60 * 1000; // Thêm nửa tiếng (mili-giây)
+        console.log("Thời gian ...", now.getTime(), record?.id);
+
+        const isGreaterThanHaftHour = now.getTime() < haftHourLater;
+        if (record?.status && isSameDay && isGreaterThanHaftHour) {
+          return (
+            <Button
+              color="primary"
+              variant="solid"
+              onClick={() => handleClick(String(record?.user_id))}
+            >
+              Gọi
+            </Button>
+          );
+        }
+        return (
+          <ModalForm
+            title="Hộp thoại"
+            trigger={<Button type="primary">Nhắn tin</Button>}
+            form={form}
+            autoFocusFirstInput
+            submitter={false}
+          >
+            <ChatBox
+              senderId={+user_id}
+              receiverId={record?.user_id}
+              appointmentId={record?.id}
+            />
+          </ModalForm>
+        );
+      },
     },
   ];
   useEffect(() => {
@@ -163,20 +202,29 @@ export default function AppointmentManagement() {
               onFinish={async (values) => {
                 try {
                   const patient_id = localStorage.getItem("id");
+                  const realTime = formatTimeUTC(values?.scheduled_time);
+
                   const bodyData = {
                     ...values,
                     ...userInfo,
                     type_id: 1,
                     patient_id: patient_id,
+                    scheduled_time: realTime,
                   };
+
                   const data = await request.post(
                     `/appointment/create`,
                     bodyData
                   );
+
                   if (data.status === 201) {
                     notification.success({
                       message: data?.data?.message,
                     });
+                    const newData = { ...data };
+                    console.log(newData);
+
+                    // setDataSource((prev) => [...prev, ])
                   } else {
                     {
                       notification.warning({
@@ -184,6 +232,7 @@ export default function AppointmentManagement() {
                       });
                     }
                   }
+                  return true;
                 } catch (error) {
                   console.log(error);
                 }

@@ -21,22 +21,6 @@ const BookAppointment = () => {
   // Cấu hình locale Tiếng Việt cho moment
   moment.locale("vi"); // Cập nhật lại locale cho moment
 
-  const onFinish = (values) => {
-    setLoading(true);
-
-    // Xử lý dữ liệu, chuyển đổi thời gian hẹn sang timestamp (PostgreSQL)
-    const appointmentTime = moment(values.appointment).format(
-      "YYYY-MM-DD HH:mm:ss"
-    );
-
-    // Giả sử gửi dữ liệu lên server (api)
-    setTimeout(() => {
-      setLoading(false);
-      message.success(`Đặt lịch hẹn thành công với bác sĩ ${values.doctor}!`);
-      form.resetFields();
-    }, 1000);
-  };
-
   return (
     <ConfigProvider locale={viVN}>
       {" "}
@@ -66,7 +50,23 @@ const BookAppointment = () => {
             placeholder="Chọn bệnh nhân"
             request={async () => {
               const data = await request.get("/patient");
-              console.log(data);
+              const result = data?.data?.data.map((i) => ({
+                value: i?.id,
+                label: i?.name,
+              }));
+              return result;
+            }}
+          />
+        </Form.Item>
+        <Form.Item
+          label="Loại lịch"
+          name="type_id"
+          rules={[{ required: true, message: "Vui lòng chọn bệnh nhân!" }]}
+        >
+          <ProFormSelect
+            placeholder="Chọn loại lịch"
+            request={async () => {
+              const data = await request.get("/type-appointment");
               const result = data?.data?.data.map((i) => ({
                 value: i?.id,
                 label: i?.name,

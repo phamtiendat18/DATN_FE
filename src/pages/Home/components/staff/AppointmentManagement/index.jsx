@@ -16,7 +16,9 @@ import BookAppointment from "../BookAppointment";
 import { render } from "less";
 import "./style.css";
 import moment from "moment";
-import formatedTime from "../../../../../commons/time";
+import { formatTimeUTC } from "../../../../../utils/time";
+import formattedTime from "../../../../../commons/time";
+import ChatBox from "../../../../../components/ChatBox";
 
 export default function AppointmentManagement() {
   const [dataSource, setDataSource] = useState([]);
@@ -24,6 +26,7 @@ export default function AppointmentManagement() {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const userInfo = useRecoilValue(userAtom);
+  const user_id = localStorage.getItem("user_id");
   const getStaffInfo = async (id) => {
     const data = await request.get(`/staff/${id}`);
     setStaff(`Dr ${id}`);
@@ -36,15 +39,25 @@ export default function AppointmentManagement() {
   const getDataSource = useCallback(async () => {
     setLoading(true);
     const staff_id = localStorage.getItem("id");
-    console.log(staff_id);
 
     const data = await request.get(
       `/appointment/staff/${userInfo?.id || staff_id}`
     );
     if (data.status === 200) {
       setLoading(false);
+      const dataArr = data?.data?.data;
+      const newArr = dataArr.map((i) => {
+        const itemObj = {
+          ...i,
+          patient_name: i?.patient?.name,
+          user_id: i?.patient?.user_id,
+          appointment_type: i?.type_appointment?.name,
+          type_id: i?.type_appointment?.id,
+        };
+        return itemObj;
+      });
 
-      setDataSource(data?.data?.data);
+      setDataSource(newArr);
     }
   }, [userInfo]);
   const columns = [
@@ -59,12 +72,17 @@ export default function AppointmentManagement() {
       title: "Thời gian đã hẹn",
       dataIndex: "scheduled_time",
       key: "scheduled_time",
-      render: (time) => <p>{formatedTime(time)}</p>,
+      render: (time) => <p>{formattedTime(time)}</p>,
     },
     {
       title: "Bệnh nhân",
-      dataIndex: "patient_id",
-      key: "patient_id",
+      dataIndex: "patient_name",
+      key: "patient_name",
+    },
+    {
+      title: "Loại lịch",
+      dataIndex: "appointment_type",
+      key: "appointment_type",
     },
     {
       title: "Trạng thái",
@@ -92,7 +110,7 @@ export default function AppointmentManagement() {
       key: "action",
       render: (_, record) => (
         <Space size="middle">
-          {record.status === null ? (
+          {record.status === null && (
             <>
               <Popconfirm
                 title="Bạn có chắc muốn chấp nhận lịch hẹn này không?"
@@ -117,9 +135,20 @@ export default function AppointmentManagement() {
                 <Button danger>Từ chối</Button>
               </Popconfirm>
             </>
-          ) : (
-            ""
           )}
+          <ModalForm
+            title="Hộp thoại"
+            trigger={<Button type="primary">Nhắn tin</Button>}
+            form={form}
+            autoFocusFirstInput
+            submitter={false}
+          >
+            <ChatBox
+              senderId={+user_id}
+              receiverId={record?.user_id}
+              appointmentId={record?.id}
+            />
+          </ModalForm>
         </Space>
       ),
     },
@@ -160,13 +189,17 @@ export default function AppointmentManagement() {
               onFinish={async (values) => {
                 try {
                   const staff_id = localStorage.getItem("id");
+                  const realTime = formatTimeUTC(values?.scheduled_time);
+                  console.log(values);
+
                   const bodyData = {
                     ...values,
                     ...userInfo,
-                    type_id: 1,
-                    staff_id: +staff_id,
+                    staff_id,
                     status: true,
+                    scheduled_time: realTime,
                   };
+
                   const data = await request.post(
                     `/appointment/create`,
                     bodyData

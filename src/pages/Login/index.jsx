@@ -29,14 +29,13 @@ export default () => {
         tab === "login"
           ? await request.post("/auth/login", bodyData)
           : await request.post("/auth/register", bodyData);
-      if (response.data?.status) {
+      if (response.data?.status === 400 || response.data?.status === 401) {
         return notification.error({
           message: response.data?.message,
         });
+      } else {
+        notification.success({ message: response.data?.message });
       }
-      notification.success({
-        message: "Đăng nhập thành công",
-      });
       autoLogin
         ? localStorage.setItem("token", response?.data?.token)
         : sessionStorage.setItem("token", response?.data?.token);
@@ -50,7 +49,11 @@ export default () => {
       localStorage.setItem("access_token", response.data?.accessToken);
 
       setUserinfo(response?.data?.data);
-      navigate("/home");
+      if (tab === "login") {
+        navigate("/home");
+      } else {
+        setTab("login");
+      }
     },
     [tab]
   );
@@ -106,7 +109,7 @@ export default () => {
                 rules={[
                   {
                     required: true,
-                    message: "Bạn chưa nhập mật khẩu！",
+                    message: "Bạn chưa nhập mật khẩu!",
                   },
                 ]}
               />
@@ -255,6 +258,7 @@ export default () => {
                   }));
                   return result;
                 }}
+                placeholder="Vai trò"
               />
             </>
           )}
