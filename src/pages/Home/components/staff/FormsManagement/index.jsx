@@ -29,7 +29,6 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import userAtom from "../../../../../atoms/user";
 import BookAppointment from "../BookAppointment";
 import { render } from "less";
-import "./style.css";
 import formattedTime from "../../../../../commons/time";
 import VideoCall from "../../../../VideoCall";
 import { StringeeCall, StringeeCall2, StringeeClient } from "stringee";
@@ -38,9 +37,9 @@ import { useNavigate } from "react-router-dom";
 import moment from "moment-timezone";
 import { formatTimeUTC } from "../../../../../utils/time";
 import ChatBox from "../../../../../components/ChatBox";
+import ConsultForm from "../../../../../components/ConsultForm";
 
-export default function AppointmentManagement() {
-  const { onCall } = useContext(StringeeContext);
+export default function ConsultFormManagement() {
   const [dataSource, setDataSource] = useState([]);
   const [staff, setStaff] = useState("");
   const [form] = Form.useForm();
@@ -58,16 +57,18 @@ export default function AppointmentManagement() {
     setLoading(true);
     const patient_id = localStorage.getItem("id");
     const data = await request.get(
-      `/appointment/patient/${userInfo?.patient_id || patient_id}`
+      `/consult-form/patient/${userInfo?.patient_id || patient_id}`
     );
     if (data.status === 200) {
       setLoading(false);
       const dataArr = data?.data?.data;
       const newArr = dataArr.map((i) => {
+        const parseData = JSON.parse(i?.meeting_info);
         const itemObj = {
           ...i,
           staff_name: i?.staff?.name,
           user_id: i?.staff?.user_id,
+          type_name: i?.type_form?.name,
         };
         return itemObj;
       });
@@ -82,17 +83,19 @@ export default function AppointmentManagement() {
 
   const columns = [
     {
-      title: "Mã lịch hẹn",
-      dataIndex: "id",
-      key: "id",
+      title: "STT",
+      dataIndex: "index",
+      key: "index",
       sorter: true,
       search: false,
+      render: (index) => {
+        <p>{index}</p>;
+      },
     },
     {
-      title: "Thời gian đã hẹn",
-      dataIndex: "scheduled_time",
-      key: "scheduled_time",
-      render: (time) => <p>{formattedTime(time)}</p>,
+      title: "Loại phiếu",
+      dataIndex: "type_name",
+      key: "type_name",
     },
     {
       title: "Bác sĩ",
@@ -100,67 +103,25 @@ export default function AppointmentManagement() {
       key: "staff_name",
     },
     {
-      title: "Trạng thái",
-      dataIndex: "status",
-      key: "status",
-      render: (status) => {
-        return status === true ? (
-          <p className="bg-green-500 text-white p-[10px] border border-0 rounded w-[200px] text-center">
-            Đã xác nhận
-          </p>
-        ) : status === false ? (
-          <p className="bg-red-500 text-white p-[10px] border border-0 rounded w-[200px] text-center">
-            Bị từ chối
-          </p>
-        ) : (
-          <p className="bg-orange-500 text-white p-[10px] border border-0 rounded w-[200px] text-center">
-            Chưa xác nhận
-          </p>
-        );
-      },
+      title: "Thời gian tạo",
+      dataIndex: "created_at",
+      key: "created_at",
+      render: (time) => <p>{formattedTime(time)}</p>,
     },
     {
       title: "Hành động",
       key: "action",
       render: (_, record) => {
-        const specificTime = new Date(record?.scheduled_time); // Thời gian cần kiểm tra
-        const now = new Date(); // Thời gian hiện tại
-
-        // Kiểm tra nếu cùng ngày
-        const isSameDay =
-          specificTime.getUTCFullYear() === now.getUTCFullYear() &&
-          specificTime.getUTCMonth() === now.getUTCMonth() &&
-          specificTime.getUTCDate() === now.getUTCDate();
-
-        // Kiểm tra nếu lớn hơn 1 tiếng
-        const haftHourLater = specificTime.getTime() + 30 * 60 * 1000; // Thêm nửa tiếng (mili-giây)
-
-        const isGreaterThanHaftHour = now.getTime() < haftHourLater;
         return (
           <>
             <ModalForm
-              title="Hộp thoại"
-              trigger={<Button type="primary">Nhắn tin</Button>}
+              trigger={<Button type="primary">Xem</Button>}
               form={form}
               autoFocusFirstInput
               submitter={false}
             >
-              <ChatBox
-                senderId={+user_id}
-                receiverId={record?.user_id}
-                appointmentId={record?.id}
-              />
+              <ConsultForm />
             </ModalForm>
-            {isSameDay && isGreaterThanHaftHour && (
-              <Button
-                color="primary"
-                variant="solid"
-                onClick={() => handleClick(String(record?.user_id))}
-                className="ml-[10px]"
-              >
-                Gọi
-              </Button>
-            )}
           </>
         );
       },

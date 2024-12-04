@@ -34,7 +34,7 @@ const VideoCall = ({ friendName }) => {
 
   useEffect(() => {
     if (streamLocal && localVideo.current) {
-      console.log("đây là stream", streamRemote);
+      console.log("đây là stream local", streamRemote);
 
       localVideo.current.appendChild(streamLocal);
     }
@@ -65,11 +65,11 @@ const VideoCall = ({ friendName }) => {
               <div className="flex">
                 <div
                   ref={localVideo}
-                  style={{ width: "", background: "black" }}
+                  style={{ width: "50%", background: "black" }}
                 ></div>
                 <div
                   ref={remoteVideo}
-                  style={{ width: "", background: "black" }}
+                  style={{ width: "50%", background: "black" }}
                   className="mx-3"
                 ></div>
               </div>
@@ -77,17 +77,13 @@ const VideoCall = ({ friendName }) => {
           )}
           {isCalling && (
             <div className="mt-3 flex items-center w-full justify-center">
-              {!isVideoCall ? (
-                <Button
-                  color="primary"
-                  variant="solid"
-                  onClick={upgradeToVideoCall}
-                >
-                  Mở camera
-                </Button>
-              ) : (
-                ""
-              )}
+              <Button
+                color="primary"
+                variant="solid"
+                onClick={upgradeToVideoCall}
+              >
+                VideoCall
+              </Button>
               <Button color="danger" variant="solid" onClick={handleEnd}>
                 Kết thúc
               </Button>

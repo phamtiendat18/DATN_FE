@@ -20,6 +20,7 @@ const MyProfile = () => {
   const role = localStorage.getItem("role")?.toLocaleLowerCase().trim() || "";
   const id = localStorage.getItem("id")?.toLocaleLowerCase().trim() || "";
   const [editing, setEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const userInfo = useRecoilValue(userAtom);
 
@@ -51,15 +52,15 @@ const MyProfile = () => {
     // const { status } = await request.post("/auth/change-password", data);
   };
   const getData = useCallback(async () => {
+    setLoading(true);
     if (Object.keys(userInfo).length === 0) {
       const data = await request.get(
         `/${role === "staffs" ? "staff" : "patient"}/${id}`
       );
       form.setFieldsValue(data.data);
+      setLoading(false);
       return;
     }
-
-    form.setFieldsValue(userInfo?.patient || userInfo?.staff);
   }, []);
   useEffect(() => {
     getData();
@@ -74,6 +75,7 @@ const MyProfile = () => {
         </div>
         <h2 className="font-bold text-[40px] text-center">Thông tin cá nhân</h2>
         <ProCard
+          loading={loading}
           style={{ width: "60%", margin: "0 auto" }}
           extra={[
             <Button

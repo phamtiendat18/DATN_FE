@@ -19,6 +19,7 @@ import moment from "moment";
 import { formatTimeUTC } from "../../../../../utils/time";
 import formattedTime from "../../../../../commons/time";
 import ChatBox from "../../../../../components/ChatBox";
+import ConsultForm from "../../../../../components/ConsultForm";
 
 export default function AppointmentManagement() {
   const [dataSource, setDataSource] = useState([]);
@@ -33,8 +34,13 @@ export default function AppointmentManagement() {
   };
   const handleUpdate = useCallback(async (record, status) => {
     const newRecord = { ...record, status: status };
+
     const response = await request.put(`/appointment/${record?.id}`, newRecord);
-    console.log(response);
+    if (response.status === 200) {
+      notification.success({
+        message: response.data.message,
+      });
+    }
   }, []);
   const getDataSource = useCallback(async () => {
     setLoading(true);
@@ -89,7 +95,6 @@ export default function AppointmentManagement() {
       dataIndex: "status",
       key: "status",
       render: (status) => {
-        console.log(status);
         return status === true ? (
           <p className="bg-green-500 text-white p-[10px] border border-0 rounded w-[200px] text-center">
             Đã xác nhận
@@ -149,12 +154,50 @@ export default function AppointmentManagement() {
               appointmentId={record?.id}
             />
           </ModalForm>
+          <ModalForm
+            title="Đặt lịch hẹn"
+            trigger={<Button type="primary">Thêm phiếu tư vấn</Button>}
+            form={form}
+            autoFocusFirstInput
+            modalProps={{
+              destroyOnClose: true,
+              okText: "OK",
+              cancelText: "Hủy",
+            }}
+            onFinish={async (values) => {
+              try {
+                const bodyData = {
+                  ...values,
+                  meeting_info: JSON.stringify(values),
+                  appointment_id: record?.id,
+                  type_id: 1,
+                };
+
+                const data = await request.post(`/consult-form`, bodyData);
+                if (data.status === 201) {
+                  notification.success({
+                    message: data?.data?.message,
+                  });
+                } else {
+                  {
+                    notification.warning({
+                      message: data?.message,
+                    });
+                  }
+                }
+              } catch (error) {
+                console.log(error);
+              }
+              return true;
+            }}
+          >
+            <ConsultForm form={form} record={record} />
+          </ModalForm>
         </Space>
       ),
     },
   ];
   useEffect(() => {
-    console.log(dataSource);
     getDataSource();
     return;
   }, []);
@@ -190,7 +233,6 @@ export default function AppointmentManagement() {
                 try {
                   const staff_id = localStorage.getItem("id");
                   const realTime = formatTimeUTC(values?.scheduled_time);
-                  console.log(values);
 
                   const bodyData = {
                     ...values,

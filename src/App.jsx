@@ -75,7 +75,7 @@ function App() {
                 </p>
                 <div className="relative flex flex-col sm:flex-row sm:space-x-4">
                   <Link
-                    href="/login"
+                    to="/login"
                     className="flex items-center w-full px-6 py-3 mb-3 text-lg text-white bg-indigo-600 rounded-md sm:mb-0 hover:bg-indigo-700 sm:w-auto"
                   >
                     Đặt lịch ngay

@@ -25,7 +25,6 @@ const ChatBox = ({ senderId, receiverId, appointmentId }) => {
           content: msg.content,
           timestamp: msg.timestamp,
         }));
-        console.log(messageList);
 
         setMessages(messageList); // Cập nhật trạng thái tin nhắn
       }

@@ -45,6 +45,10 @@ export default () => {
         response.data?.data?.patient?.id || response.data?.data?.staff?.id
       );
       localStorage.setItem("username", response.data?.data?.username);
+      localStorage.setItem(
+        "name",
+        response.data?.data?.patient?.name || response.data?.data?.staff?.name
+      );
       localStorage.setItem("user_id", response.data?.data?.id);
       localStorage.setItem("access_token", response.data?.accessToken);
 

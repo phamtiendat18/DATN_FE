@@ -41,8 +41,6 @@ export const StringeeProvider = ({ children }) => {
     chat.createConversation(
       { name: call?.callId, participants, isDistinct: true },
       (status, code, message, conversation) => {
-        console.log(status);
-
         if (status === 0) {
           console.log("Conversation created:", conversation);
           setCurrentConversationId(conversation.id);
@@ -79,24 +77,25 @@ export const StringeeProvider = ({ children }) => {
 
   const settingCallEvent = (call1) => {
     call1.on("addremotestream", (stream) => {
-      setStreamRemote(stream);
       console.log("remote stream:", stream);
     });
 
     call1.on("addlocalstream", (stream) => {
-      setStreamLocal(stream);
       console.log("local stream:", stream);
     });
     call1.on("addlocaltrack", (localtrack1) => {
       console.log("addlocaltrack", localtrack1);
-
       const element = localtrack1.attach();
+      console.log("Đây là element", element);
+
       setStreamLocal(element);
     });
     call1.on("addremotetrack", (track) => {
       console.log("remote track", track);
 
       const element = track.attach();
+      console.log(element);
+
       setStreamRemote(element);
     });
     call1.on("removeremotetrack", (track) => {
@@ -192,6 +191,7 @@ export const StringeeProvider = ({ children }) => {
     call.upgradeToVideoCall();
     setIsVideoCall(true);
     setLoading(true);
+    console.log(streamLocal);
   };
 
   useEffect(() => {

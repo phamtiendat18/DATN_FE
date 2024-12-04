@@ -6,13 +6,7 @@ import moment from "moment";
 import "moment/locale/vi"; // Import locale Tiếng Việt cho moment
 import viVN from "antd/es/locale/vi_VN"; // Import locale Tiếng Việt của Ant Design
 import request from "../../../../../configs/axiosConfig";
-
-// Giả lập danh sách bác sĩ
-const doctors = [
-  { id: 1, name: "Dr. John Doe" },
-  { id: 2, name: "Dr. Jane Smith" },
-  { id: 3, name: "Dr. Emily Davis" },
-];
+import TextArea from "antd/es/input/TextArea";
 
 const BookAppointment = () => {
   const [form] = Form.useForm();
@@ -99,6 +93,9 @@ const BookAppointment = () => {
             options={staffs}
             loading={true}
           />
+        </Form.Item>
+        <Form.Item label="Ghi chú" name="note">
+          <TextArea placeholder="Ghi chú của bạn" />
         </Form.Item>
       </>
     </ConfigProvider>

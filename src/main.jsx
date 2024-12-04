@@ -12,12 +12,19 @@ import AccountManagement from "./pages/Home/components/AccountManagement/index.j
 import BookAppointment from "./pages/Home/components/patient/BookAppointment/index.jsx";
 import AppointmentManagement from "./pages/Home/components/patient/AppointmentManagement/index.jsx";
 import StaffAppointmentManagement from "./pages/Home/components/staff/AppointmentManagement/index.jsx";
+import StaffMedicalRecordManagement from "./pages/Home/components/staff/MedicalRecordManagement/index.jsx";
 import StaffProfile from "./pages/MyProFfile/staff/index.jsx";
 import ChangePassword from "./pages/MyProFfile/ChangePassword/index.jsx";
 import PatientProfile from "./pages/MyProFfile/patient/index.jsx";
 import MyProfile from "./pages/MyProFfile/index.jsx";
 import VideoCall from "./pages/VideoCall/index.jsx";
 import { StringeeProvider } from "./stringeeContext.jsx";
+import { ConfigProvider } from "antd";
+import viVN from "antd/es/locale/vi_VN";
+import MedicalRecordForm from "./components/MedicalRecordForm/index.jsx";
+import PatientMedicalRecordManagement from "./pages/Home/components/patient/MedicalRecordManagement/index.jsx";
+import PatientConsultFormManagement from "./pages/Home/components/patient/ConsultFormManagement/index.jsx";
+import StaffConsultFormManagement from "./pages/Home/components/staff/FormsManagement/index.jsx";
 
 const router = createBrowserRouter([
   {
@@ -54,6 +61,14 @@ const router = createBrowserRouter([
         path: "/home/p/appointment",
         element: <AppointmentManagement />,
       },
+      {
+        path: "/home/p/medical-record",
+        element: <PatientMedicalRecordManagement />,
+      },
+      {
+        path: "/home/p/forms",
+        element: <PatientConsultFormManagement />,
+      },
     ],
   },
   {
@@ -65,8 +80,12 @@ const router = createBrowserRouter([
         element: <StaffAppointmentManagement />,
       },
       {
-        path: "/home/s/video-call",
-        element: <VideoCall />,
+        path: "/home/s/medical-record",
+        element: <StaffMedicalRecordManagement />,
+      },
+      {
+        path: "/home/s/forms",
+        element: <StaffMedicalRecordManagement />,
       },
     ],
   },
@@ -103,7 +122,9 @@ createRoot(document.getElementById("root")).render(
     <RecoilRoot>
       <StringeeProvider>
         <RouterProvider router={router}>
-          <App />
+          <ConfigProvider locale={viVN}>
+            <App />
+          </ConfigProvider>
         </RouterProvider>
       </StringeeProvider>
     </RecoilRoot>

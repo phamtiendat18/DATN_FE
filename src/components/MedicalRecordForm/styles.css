@@ -1,0 +1,44 @@
+.medical-record-card {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+
+.medical-record-title {
+  text-align: center;
+}
+
+.medical-record-form input[readonly] {
+  border: none;
+  outline: none;
+  background-color: transparent;
+  color: #000;
+  font-size: 14px;
+  padding-left: 0;
+}
+
+.medical-record-form textarea[readonly] {
+  border: none;
+  outline: none;
+  background-color: transparent;
+  color: #000;
+}
+
+.medical-record-form .ant-form-item-label > label {
+  font-weight: bold;
+  color: #595959;
+}
+.ant-row.ant-form-item-row {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+}
+.ant-col.ant-form-item-control {
+  width: fit-content !important;
+}
+.ant-col.ant-form-item-label {
+  padding: 0 !important;
+  font-weight: 500;
+}

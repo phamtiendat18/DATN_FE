@@ -10,13 +10,16 @@ import {
   Route,
   BrowserRouter as Router,
   Routes,
+  useLocation,
   useNavigate,
+  useParams,
 } from "react-router-dom"; // Sử dụng Routes thay vì Switch
 import AccountManagement from "./components/AccountManagement";
 import RoleManagement from "./components/RoleManagement";
 import Footer from "./components/Footer";
 import AvatarDrop from "./components/AvatarDrop"; // Đảm bảo AvatarDrop có Menu cho dropdown
 import logo from "../../assets/images/logo_icon.png";
+import bgHome from "../../assets/images/bgHome.png";
 import request from "../../configs/axiosConfig";
 import AvatarDropdown from "../../components/MenuDropDown";
 import MenuDropDown from "../../components/MenuDropDown";
@@ -34,6 +37,8 @@ const Home = () => {
     isVideoCall,
   } = useContext(StringeeContext);
   const navigate = useNavigate();
+  const location = useLocation();
+
   const handleLogout = useCallback(async () => {
     const response = await request.post("/auth/logout");
     if (response.status === 200) {
@@ -69,11 +74,26 @@ const Home = () => {
             name: "Quản lý lịch hẹn",
             icon: <SmileOutlined />,
           },
+          {
+            path: "/home/s/medical-record",
+            name: "Quản lý Hồ sơ bệnh án",
+            icon: <SmileOutlined />,
+          },
+          {
+            path: "/home/p/forms",
+            name: "Quản lý phiếu, biên bản",
+            icon: <SmileOutlined />,
+          },
         ]
       : [
           {
             path: "/home/p/appointment",
             name: "Quản lý lịch hẹn",
+            icon: <SmileOutlined />,
+          },
+          {
+            path: "/home/p/medical-record",
+            name: "Quản lý hồ sơ bệnh án",
             icon: <SmileOutlined />,
           },
         ];
@@ -114,10 +134,17 @@ const Home = () => {
       onMenuHeaderClick={() => console.log("Logo clicked")} // Sự kiện click vào logo
     >
       <div className="flex justify-between">
-        <div className="text-[20px] uppercase">
+        <div className="text-[20px] uppercase mb-[50px]">
           Hệ thống tư vấn sức khỏe của bệnh viện Hưng Hà
         </div>
         <MenuDropDown />
+      </div>
+      <div>
+        {location?.pathname === "/home" && (
+          <div>
+            <img src={bgHome} className="w-full" alt="" />
+          </div>
+        )}
       </div>
       <Outlet />
       <Modal visible={!!hasIncomingCall} onCancel={rejectCall} footer={[]}>

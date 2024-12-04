@@ -13,6 +13,7 @@ const MenuDropDown = () => {
         message: response.data?.message,
       });
       localStorage.clear();
+      sessionStorage.clear();
       navigate("/login");
     } else {
       notification.error({
